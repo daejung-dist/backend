@@ -8,6 +8,8 @@ import org.springframework.web.server.ResponseStatusException;
 import shop.daejung.daejungdistbackend.modules.hongge.domain.Hongge;
 import shop.daejung.daejungdistbackend.modules.hongge.repository.HonggeRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -17,5 +19,9 @@ public class HonggeService {
     public Hongge getHongge(Long id) {
         return honggeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hongge not found"));
+    }
+
+    public List<Hongge> getHongges() {
+        return honggeRepository.findAllByOrderByIdAsc();
     }
 }

@@ -29,7 +29,7 @@ class HonggeControllerTest {
         mockMvc.perform(get("/api/v1/hongges"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("대정 특급 홍게"))
-                .andExpect(jsonPath("$[1].name").value("실속형 홍게"));
+                .andExpect(jsonPath("$[1].name").value("대정 실속형 홍게"));
     }
 
     @Test

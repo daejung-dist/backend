@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -68,6 +67,7 @@ logs/
 *.war
 *.ear
 *.jar.original
+!gradle/wrapper/gradle-wrapper.jar
 
 # Mac
 .AppleDouble

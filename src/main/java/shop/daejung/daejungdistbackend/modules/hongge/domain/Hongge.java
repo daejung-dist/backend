@@ -27,10 +27,18 @@ public class Hongge {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column
+    private String description;
+
+    @Column
+    private String thumbnailUrl;
+
     @Builder
-    private Hongge(String name, Long price, Integer quantity) {
+    private Hongge(String name, Long price, Integer quantity, String description, String thumbnailUrl) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
+        this.description = description;
+        this.thumbnailUrl = thumbnailUrl;
     }
 }

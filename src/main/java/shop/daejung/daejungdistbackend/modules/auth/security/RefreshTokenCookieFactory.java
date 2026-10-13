@@ -8,6 +8,8 @@ import java.time.Duration;
 
 @Component
 public class RefreshTokenCookieFactory {
+    private static final String COOKIE_PATH = "/api/v1/auth";
+
     private final boolean cookieSecure;
 
     public RefreshTokenCookieFactory(@Value("${app.cookie.secure}") boolean cookieSecure) {
@@ -19,8 +21,18 @@ public class RefreshTokenCookieFactory {
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .sameSite("Lax")
-                .path("/api/v1/auth/refresh")
+                .path(COOKIE_PATH)
                 .maxAge(Duration.ofDays(7))
+                .build();
+    }
+
+    public ResponseCookie clear() {
+        return ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Lax")
+                .path(COOKIE_PATH)
+                .maxAge(Duration.ZERO)
                 .build();
     }
 }

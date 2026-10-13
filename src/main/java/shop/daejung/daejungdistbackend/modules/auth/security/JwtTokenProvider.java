@@ -10,6 +10,7 @@ import shop.daejung.daejungdistbackend.modules.user.domain.User;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
@@ -44,22 +45,31 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(User user) {
-        return generateToken(user, "REFRESH", refreshExpirationMs, refreshKey);
+        String tokenId = UUID.randomUUID().toString();
+        return generateToken(user, "REFRESH", refreshExpirationMs, refreshKey, tokenId);
     }
 
     private String generateToken(User user, String tokenType, long expirationMs, SecretKey key) {
+        return generateToken(user, tokenType, expirationMs, key, null);
+    }
+
+    private String generateToken(User user, String tokenType, long expirationMs, SecretKey key, String tokenId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(user.getEmail())
                 .claim("userId", user.getId())
                 .claim("role", user.getRole().name())
                 .claim("tokenType", tokenType)
                 .issuedAt(now)
-                .expiration(expiration)
-                .signWith(key)
-                .compact();
+                .expiration(expiration);
+
+        if (tokenId != null && !tokenId.isBlank()) {
+            builder.id(tokenId);
+        }
+
+        return builder.signWith(key).compact();
     }
 
     // 토큰 검증
@@ -103,6 +113,18 @@ public class JwtTokenProvider {
 
     public String getEmailFromRefreshToken(String token) {
         return validateAndGetRefreshClaims(token).getSubject();
+    }
+
+    public String getTokenIdFromRefreshToken(String token) {
+        String tokenId = validateAndGetRefreshClaims(token).getId();
+        if (tokenId == null || tokenId.isBlank()) {
+            throw new IllegalArgumentException("Refresh token ID is missing.");
+        }
+        return tokenId;
+    }
+
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
     }
 
     private Claims parseClaims(String token, SecretKey key) {

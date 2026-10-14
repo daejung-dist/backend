@@ -15,6 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,6 +36,19 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String phoneNumber;
+
+    @Column(nullable = false)
+    private String defaultShippingAddress;
+
+    @Column(nullable = false)
+    private LocalDate birthDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -46,11 +60,16 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Builder
-    private User(String email, String password, String name, Role role) {
+    private User(String email, String password, String name, Role role,
+                 String phoneNumber, String defaultShippingAddress, LocalDate birthDate, Gender gender) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.role = role != null ? role : Role.USER;
+        this.phoneNumber = phoneNumber;
+        this.defaultShippingAddress = defaultShippingAddress;
+        this.birthDate = birthDate;
+        this.gender = gender;
     }
 
     @PrePersist

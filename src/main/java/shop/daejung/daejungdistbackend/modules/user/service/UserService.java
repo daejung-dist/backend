@@ -29,6 +29,10 @@ public class UserService {
                 .password(encodedPassword)
                 .name(request.name())
                 .role(Role.USER)
+                .phoneNumber(request.phoneNumber())
+                .defaultShippingAddress(request.defaultShippingAddress())
+                .birthDate(request.birthDate())
+                .gender(request.gender())
                 .build();
 
         return userRepository.save(user);

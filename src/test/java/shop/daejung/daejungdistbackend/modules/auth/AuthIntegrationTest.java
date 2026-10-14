@@ -13,12 +13,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import shop.daejung.daejungdistbackend.modules.auth.security.JwtTokenProvider;
 import shop.daejung.daejungdistbackend.modules.auth.store.RefreshTokenStore;
+import shop.daejung.daejungdistbackend.modules.user.domain.Gender;
 import shop.daejung.daejungdistbackend.modules.user.domain.Role;
 import shop.daejung.daejungdistbackend.modules.user.domain.User;
 import shop.daejung.daejungdistbackend.modules.user.repository.UserRepository;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.containsString;
@@ -64,7 +66,7 @@ class AuthIntegrationTest {
     void signUpReturnsAccessTokenAndRefreshCookie() throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType("application/json")
-                        .content("{\"email\":\"user@example.com\",\"password\":\"password123\",\"name\":\"테스터\"}"))
+                        .content("{\"email\":\"user@example.com\",\"password\":\"password123\",\"name\":\"테스터\",\"phoneNumber\":\"010-1234-5678\",\"defaultShippingAddress\":\"서울시 강남구 테헤란로 1\",\"birthDate\":\"1995-01-20\",\"gender\":\"MALE\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(header().string("Set-Cookie", containsString("refreshToken=")));
@@ -76,6 +78,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("테스터")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -93,6 +99,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("테스터")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -118,6 +128,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("테스터")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -139,6 +153,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("테스터")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -155,6 +173,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("테스터")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -195,6 +217,10 @@ class AuthIntegrationTest {
                 .email("user@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("일반유저")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
                 .role(Role.USER)
                 .build());
 
@@ -208,6 +234,10 @@ class AuthIntegrationTest {
                 .email("admin@example.com")
                 .password(passwordEncoder.encode("password123"))
                 .name("관리자")
+                .phoneNumber("010-9999-9999")
+                .defaultShippingAddress("서울시 서초구 반포대로 1")
+                .birthDate(LocalDate.of(1990, 5, 5))
+                .gender(Gender.FEMALE)
                 .role(Role.ADMIN)
                 .build());
 

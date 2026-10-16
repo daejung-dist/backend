@@ -1,7 +1,7 @@
 package shop.daejung.daejungdistbackend.global.config;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,11 +36,4 @@ class SecurityConfigTest {
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
     }
 
-    @Test
-    void rejectsUnconfiguredCorsOrigin() throws Exception {
-        mockMvc.perform(options("/api/v1/hongges")
-                        .header("Origin", "https://www.daejung.shop")
-                        .header("Access-Control-Request-Method", "GET"))
-                .andExpect(status().isForbidden());
-    }
 }

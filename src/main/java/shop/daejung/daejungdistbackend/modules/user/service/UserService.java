@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import shop.daejung.daejungdistbackend.modules.auth.dto.SignUpRequest;
 import shop.daejung.daejungdistbackend.modules.user.domain.Role;
 import shop.daejung.daejungdistbackend.modules.user.domain.User;
+import shop.daejung.daejungdistbackend.modules.user.dto.UpdateMyInfoRequest;
 import shop.daejung.daejungdistbackend.modules.user.repository.UserRepository;
 
 import java.util.List;
@@ -55,6 +56,19 @@ public class UserService {
     @Transactional
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateMyInfo(String email, UpdateMyInfoRequest request) {
+        User user = getUserByEmail(email);
+        user.updateMyInfo(
+                request.name(),
+                request.phoneNumber(),
+                request.defaultShippingAddress(),
+                request.birthDate(),
+                request.gender()
+        );
+        return user;
     }
 
     public List<User> findAll() {

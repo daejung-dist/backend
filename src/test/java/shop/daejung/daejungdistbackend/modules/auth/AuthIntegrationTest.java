@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -246,6 +247,98 @@ class AuthIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/users")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void myInfoReturnsCurrentUserWhenAuthenticated() throws Exception {
+        User user = userRepository.save(User.builder()
+                .email("me@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .name("내정보유저")
+                .phoneNumber("010-1111-2222")
+                .defaultShippingAddress("서울시 중구 세종대로 1")
+                .birthDate(LocalDate.of(1994, 6, 15))
+                .gender(Gender.FEMALE)
+                .role(Role.USER)
+                .build());
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user);
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(user.getId()))
+                .andExpect(jsonPath("$.email").value("me@example.com"))
+                .andExpect(jsonPath("$.name").value("내정보유저"))
+                .andExpect(jsonPath("$.role").value("USER"))
+                .andExpect(jsonPath("$.phoneNumber").value("010-1111-2222"))
+                .andExpect(jsonPath("$.defaultShippingAddress").value("서울시 중구 세종대로 1"))
+                .andExpect(jsonPath("$.birthDate").value("1994-06-15"))
+                .andExpect(jsonPath("$.gender").value("FEMALE"));
+    }
+
+    @Test
+    void myInfoRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateMyInfoUpdatesCurrentUserWhenAuthenticated() throws Exception {
+        User user = userRepository.save(User.builder()
+                .email("patch@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .name("수정전")
+                .phoneNumber("010-0000-0000")
+                .defaultShippingAddress("서울시 강북구 초기주소 1")
+                .birthDate(LocalDate.of(1992, 2, 2))
+                .gender(Gender.OTHER)
+                .role(Role.USER)
+                .build());
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user);
+
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType("application/json")
+                        .content("{\"name\":\"수정후\",\"phoneNumber\":\"010-3333-4444\",\"defaultShippingAddress\":\"서울시 마포구 새주소 100\",\"birthDate\":\"1991-01-01\",\"gender\":\"MALE\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("patch@example.com"))
+                .andExpect(jsonPath("$.name").value("수정후"))
+                .andExpect(jsonPath("$.phoneNumber").value("010-3333-4444"))
+                .andExpect(jsonPath("$.defaultShippingAddress").value("서울시 마포구 새주소 100"))
+                .andExpect(jsonPath("$.birthDate").value("1991-01-01"))
+                .andExpect(jsonPath("$.gender").value("MALE"));
+    }
+
+    @Test
+    void updateMyInfoRequiresAuthentication() throws Exception {
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .contentType("application/json")
+                        .content("{\"name\":\"수정후\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateMyInfoRejectsEmptyBody() throws Exception {
+        User user = userRepository.save(User.builder()
+                .email("empty@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .name("빈요청")
+                .phoneNumber("010-1234-0000")
+                .defaultShippingAddress("서울시 성동구 어딘가 2")
+                .birthDate(LocalDate.of(1990, 10, 10))
+                .gender(Gender.FEMALE)
+                .role(Role.USER)
+                .build());
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user);
+
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 
     private String createRefreshTokenWithoutJti(User user) {

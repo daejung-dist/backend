@@ -83,4 +83,22 @@ public class User {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateMyInfo(String name, String phoneNumber, String defaultShippingAddress, LocalDate birthDate, Gender gender) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+        if (defaultShippingAddress != null) {
+            this.defaultShippingAddress = defaultShippingAddress;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+        if (gender != null) {
+            this.gender = gender;
+        }
+    }
 }

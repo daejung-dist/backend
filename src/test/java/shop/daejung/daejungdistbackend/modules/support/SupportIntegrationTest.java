@@ -254,6 +254,63 @@ class SupportIntegrationTest {
         assertThat(commentRepository.count()).isZero();
     }
 
+    @Test
+    void commentsCanBeReadByAnyoneAndWrittenAfterLogin() throws Exception {
+        SupportPost post = savePost(writer, "배송 문의", false);
+        String url = "/api/v1/supports/" + post.getId() + "/comments";
+        String body = "{\"content\":\"내일 출고됩니다.\"}";
+
+        mockMvc.perform(post(url).contentType("application/json").content(body))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post(url)
+                        .header("Authorization", bearer(admin))
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.author").value("대정유통"))
+                .andExpect(jsonPath("$.content").value("내일 출고됩니다."));
+
+        mockMvc.perform(post(url)
+                        .header("Authorization", bearer(writer))
+                        .contentType("application/json")
+                        .content("{\"content\":\"" + "가".repeat(1001) + "\"}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].authorId").value(admin.getId()));
+
+        mockMvc.perform(get("/api/v1/supports/" + post.getId()))
+                .andExpect(jsonPath("$.commentCount").value(1));
+
+        mockMvc.perform(get("/api/v1/supports/999999/comments"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void onlyAuthorOrAdminCanDeleteComment() throws Exception {
+        SupportPost post = savePost(writer, "배송 문의", false);
+        SupportPost otherPost = savePost(other, "다른 글", false);
+        SupportComment comment = commentRepository.save(
+                SupportComment.builder().post(post).user(writer).content("추가 문의").build());
+        String url = "/api/v1/supports/" + post.getId() + "/comments/" + comment.getId();
+
+        mockMvc.perform(delete(url).header("Authorization", bearer(other)))
+                .andExpect(status().isForbidden());
+
+        // 다른 게시글 경로로는 지울 수 없다
+        mockMvc.perform(delete("/api/v1/supports/" + otherPost.getId() + "/comments/" + comment.getId())
+                        .header("Authorization", bearer(writer)))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete(url).header("Authorization", bearer(admin)))
+                .andExpect(status().isNoContent());
+
+        assertThat(commentRepository.count()).isZero();
+    }
+
     private User saveUser(String email, String name, Role role) {
         return userRepository.save(User.builder()
                 .email(email)

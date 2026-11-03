@@ -9,9 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import shop.daejung.daejungdistbackend.modules.support.domain.SupportComment;
 import shop.daejung.daejungdistbackend.modules.support.domain.SupportPost;
 import shop.daejung.daejungdistbackend.modules.support.domain.SupportSearchField;
+import shop.daejung.daejungdistbackend.modules.support.dto.CreateSupportCommentRequest;
 import shop.daejung.daejungdistbackend.modules.support.dto.CreateSupportPostRequest;
+import shop.daejung.daejungdistbackend.modules.support.dto.SupportCommentResponse;
 import shop.daejung.daejungdistbackend.modules.support.dto.SupportPostDetailResponse;
 import shop.daejung.daejungdistbackend.modules.support.dto.SupportPostPageResponse;
 import shop.daejung.daejungdistbackend.modules.support.dto.SupportPostSummaryResponse;
@@ -97,6 +100,40 @@ public class SupportService {
 
         commentRepository.deleteAllByPostId(postId);
         postRepository.deleteById(postId);
+    }
+
+//    댓글
+    public List<SupportCommentResponse> getComments(Long postId) {
+        if (!postRepository.existsById(postId)) {
+            throw postNotFound();
+        }
+        return commentRepository.findAllByPostIdOrderByIdAsc(postId).stream()
+                .map(SupportCommentResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public SupportCommentResponse createComment(String email, Long postId, CreateSupportCommentRequest request) {
+        User user = getUser(email);
+        SupportPost post = getPostEntity(postId);
+
+        SupportComment comment = commentRepository.save(SupportComment.builder()
+                .post(post)
+                .user(user)
+                .content(request.content())
+                .build());
+        return SupportCommentResponse.from(comment);
+    }
+
+    @Transactional
+    public void deleteComment(String email, Long postId, Long commentId) {
+        User user = getUser(email);
+        SupportComment comment = commentRepository.findById(commentId)
+                .filter(found -> found.getPost().getId().equals(postId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."));
+        checkCanModify(comment.isWrittenBy(user), user);
+
+        commentRepository.delete(comment);
     }
 
     private SupportPostDetailResponse savePost(User user, CreateSupportPostRequest request, boolean notice) {

@@ -156,7 +156,7 @@ class SupportIntegrationTest {
         String body = "{\"title\":\"배송 문의\",\"content\":\"언제 오나요?\"}";
 
         mockMvc.perform(post("/api/v1/supports").contentType("application/json").content(body))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/v1/supports")
                         .header("Authorization", bearer(writer))
@@ -208,7 +208,7 @@ class SupportIntegrationTest {
         String url = "/api/v1/supports/" + post.getId();
 
         mockMvc.perform(patch(url).contentType("application/json").content("{\"title\":\"수정\"}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(patch(url)
                         .header("Authorization", bearer(other))
@@ -261,7 +261,7 @@ class SupportIntegrationTest {
         String body = "{\"content\":\"내일 출고됩니다.\"}";
 
         mockMvc.perform(post(url).contentType("application/json").content(body))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post(url)
                         .header("Authorization", bearer(admin))

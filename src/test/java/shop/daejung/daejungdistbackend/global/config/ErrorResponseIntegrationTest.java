@@ -75,12 +75,12 @@ class ErrorResponseIntegrationTest {
     }
 
     @Test
-    void unauthenticatedWriteIsStillForbidden() throws Exception {
+    void unauthenticatedWriteReturnsUnauthorized() throws Exception {
         HttpResponse<String> response = send(HttpRequest.newBuilder(uri("/api/v1/supports"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{\"title\":\"제목\",\"content\":\"내용\"}")));
 
-        assertThat(response.statusCode()).isEqualTo(403);
+        assertThat(response.statusCode()).isEqualTo(401);
     }
 
     private URI uri(String path) {

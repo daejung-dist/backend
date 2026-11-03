@@ -50,6 +50,9 @@ class AuthIntegrationTest {
     @Autowired
     private RefreshTokenStore refreshTokenStore;
 
+    @Value("${jwt.secret}")
+    private String accessSecret;
+
     @Value("${jwt.refresh-secret}")
     private String refreshSecret;
 
@@ -280,7 +283,7 @@ class AuthIntegrationTest {
     @Test
     void myInfoRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -316,7 +319,7 @@ class AuthIntegrationTest {
         mockMvc.perform(patch("/api/v1/users/me")
                         .contentType("application/json")
                         .content("{\"name\":\"수정후\"}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -339,6 +342,40 @@ class AuthIntegrationTest {
                         .contentType("application/json")
                         .content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void expiredAccessTokenReturnsUnauthorized() throws Exception {
+        User user = userRepository.save(User.builder()
+                .email("expired@example.com")
+                .password(passwordEncoder.encode("password123"))
+                .name("만료유저")
+                .phoneNumber("010-1234-5678")
+                .defaultShippingAddress("서울시 강남구 테헤란로 1")
+                .birthDate(LocalDate.of(1995, 1, 20))
+                .gender(Gender.MALE)
+                .role(Role.USER)
+                .build());
+
+        // 프론트는 401을 받아야 refresh 쿠키로 토큰을 다시 받는다
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + createExpiredAccessToken(user)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String createExpiredAccessToken(User user) {
+        SecretKey key = Keys.hmacShaKeyFor(accessSecret.getBytes(StandardCharsets.UTF_8));
+        Date issuedAt = new Date(System.currentTimeMillis() - 120_000);
+
+        return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("userId", user.getId())
+                .claim("role", user.getRole().name())
+                .claim("tokenType", "ACCESS")
+                .issuedAt(issuedAt)
+                .expiration(new Date(issuedAt.getTime() + 60_000))
+                .signWith(key)
+                .compact();
     }
 
     private String createRefreshTokenWithoutJti(User user) {

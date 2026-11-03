@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // 오류 응답은 /error로 다시 디스패치되는데, 이때 JWT 필터가 돌지 않아 막히면 모든 오류가 403이 된다
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/hongges/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/supports/**").permitAll()

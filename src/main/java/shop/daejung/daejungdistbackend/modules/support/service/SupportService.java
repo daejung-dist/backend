@@ -136,6 +136,15 @@ public class SupportService {
         commentRepository.delete(comment);
     }
 
+//    회원 탈퇴
+    // 남이 내 글에 단 댓글까지 지워야 게시글 삭제가 외래 키에 막히지 않는다
+    @Transactional
+    public void deleteAllWrittenBy(Long userId) {
+        commentRepository.deleteAllOnPostsWrittenBy(userId);
+        commentRepository.deleteAllByUserId(userId);
+        postRepository.deleteAllByUserId(userId);
+    }
+
     private SupportPostDetailResponse savePost(User user, CreateSupportPostRequest request, boolean notice) {
         SupportPost post = postRepository.save(SupportPost.builder()
                 .user(user)

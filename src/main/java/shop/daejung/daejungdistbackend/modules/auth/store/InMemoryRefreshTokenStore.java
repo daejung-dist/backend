@@ -36,6 +36,11 @@ public class InMemoryRefreshTokenStore implements RefreshTokenStore {
         store.remove(tokenId);
     }
 
+    @Override
+    public void deleteAllByEmail(String email) {
+        store.values().removeIf(stored -> stored.email().equals(email));
+    }
+
     private record StoredRefreshToken(String email, Instant expiresAt) {
     }
 }

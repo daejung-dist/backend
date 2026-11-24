@@ -40,4 +40,8 @@ public interface SupportPostRepository extends JpaRepository<SupportPost, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update SupportPost p set p.views = p.views + 1 where p.id = :id")
     int increaseViews(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from SupportPost p where p.user.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }

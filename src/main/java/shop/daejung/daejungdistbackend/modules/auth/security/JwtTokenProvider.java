@@ -123,6 +123,12 @@ public class JwtTokenProvider {
         return tokenId;
     }
 
+    // 탈퇴 후 같은 이메일로 재가입하면 이전 토큰의 subject가 새 계정과 겹치므로 userId까지 맞춰 본다
+    public boolean isIssuedFor(Claims claims, User user) {
+        Object userId = claims.get("userId");
+        return userId instanceof Number number && user.getId() != null && user.getId() == number.longValue();
+    }
+
     public long getRefreshExpirationMs() {
         return refreshExpirationMs;
     }

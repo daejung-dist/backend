@@ -1,5 +1,6 @@
 package shop.daejung.daejungdistbackend.modules.auth.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +36,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
 
-            if (jwtTokenProvider.validateAccessToken(token)) {
-                String email = jwtTokenProvider.getEmailFromAccessToken(token);
-                User user = userRepository.findByEmail(email).orElse(null);
+            Claims claims = parseAccessClaims(token);
 
-                if (user != null) {
+            if (claims != null) {
+                String email = claims.getSubject();
+                User user = email == null ? null : userRepository.findByEmail(email).orElse(null);
+
+                if (user != null && jwtTokenProvider.isIssuedFor(claims, user)) {
                     List<SimpleGrantedAuthority> authorities = List.of(
                             new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
                     );
@@ -56,5 +59,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private Claims parseAccessClaims(String token) {
+        try {
+            return jwtTokenProvider.validateAndGetAccessClaims(token);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

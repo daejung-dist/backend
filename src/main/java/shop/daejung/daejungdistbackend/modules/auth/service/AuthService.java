@@ -1,5 +1,6 @@
 package shop.daejung.daejungdistbackend.modules.auth.service;
 
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +11,7 @@ import shop.daejung.daejungdistbackend.modules.auth.dto.LoginRequest;
 import shop.daejung.daejungdistbackend.modules.auth.dto.SignUpRequest;
 import shop.daejung.daejungdistbackend.modules.auth.security.JwtTokenProvider;
 import shop.daejung.daejungdistbackend.modules.auth.store.RefreshTokenStore;
+import shop.daejung.daejungdistbackend.modules.support.service.SupportService;
 import shop.daejung.daejungdistbackend.modules.user.domain.User;
 import shop.daejung.daejungdistbackend.modules.user.service.UserService;
 
@@ -23,6 +25,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenStore refreshTokenStore;
     private final PasswordEncoder passwordEncoder;
+    private final SupportService supportService;
 
     @Transactional
     public User signUp(SignUpRequest request) {
@@ -63,7 +66,8 @@ public class AuthService {
         }
 
         try {
-            String email = jwtTokenProvider.validateAndGetRefreshClaims(refreshToken).getSubject();
+            Claims claims = jwtTokenProvider.validateAndGetRefreshClaims(refreshToken);
+            String email = claims.getSubject();
             String tokenId = jwtTokenProvider.getTokenIdFromRefreshToken(refreshToken);
 
             String storedEmail = refreshTokenStore.findEmail(tokenId)
@@ -76,6 +80,7 @@ public class AuthService {
             refreshTokenStore.delete(tokenId);
 
             return userService.findByEmail(email)
+                    .filter(user -> jwtTokenProvider.isIssuedFor(claims, user))
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "사용자를 찾을 수 없습니다."));
         } catch (IllegalArgumentException e) {
             throw invalidRefreshToken();
@@ -92,6 +97,22 @@ public class AuthService {
             refreshTokenStore.delete(tokenId);
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    // 탈취된 access token만으로는 탈퇴할 수 없도록 비밀번호를 다시 확인한다
+    @Transactional
+    public void withdraw(String email, String password) {
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증된 사용자를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            // 401을 주면 프론트가 토큰 재발급으로 오인하므로 400으로 응답한다
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다.");
+        }
+
+        supportService.deleteAllWrittenBy(user.getId());
+        userService.delete(user);
+        refreshTokenStore.deleteAllByEmail(email);
     }
 
     private ResponseStatusException invalidRefreshToken() {

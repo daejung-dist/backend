@@ -8,4 +8,6 @@ public interface RefreshTokenStore {
     Optional<String> findEmail(String tokenId);
 
     void delete(String tokenId);
+
+    void deleteAllByEmail(String email);
 }

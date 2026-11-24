@@ -71,6 +71,11 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public void delete(User user) {
+        userRepository.deleteById(user.getId());
+    }
+
     public List<User> findAll() {
         return userRepository.findAll();
     }

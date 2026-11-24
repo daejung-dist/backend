@@ -18,4 +18,12 @@ public interface SupportCommentRepository extends JpaRepository<SupportComment, 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from SupportComment c where c.post.id = :postId")
     void deleteAllByPostId(@Param("postId") Long postId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from SupportComment c where c.user.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from SupportComment c where c.post.id in (select p.id from SupportPost p where p.user.id = :userId)")
+    void deleteAllOnPostsWrittenBy(@Param("userId") Long userId);
 }

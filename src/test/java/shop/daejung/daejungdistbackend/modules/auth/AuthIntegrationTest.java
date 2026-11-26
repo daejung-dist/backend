@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import shop.daejung.daejungdistbackend.modules.auth.security.JwtTokenProvider;
+import shop.daejung.daejungdistbackend.modules.auth.service.EmailVerificationService;
 import shop.daejung.daejungdistbackend.modules.auth.store.RefreshTokenStore;
 import shop.daejung.daejungdistbackend.modules.user.domain.Gender;
 import shop.daejung.daejungdistbackend.modules.user.domain.Role;
@@ -50,6 +52,10 @@ class AuthIntegrationTest {
     @Autowired
     private RefreshTokenStore refreshTokenStore;
 
+    // 이메일 인증은 EmailVerificationIntegrationTest에서 확인하고, 여기서는 가입 흐름만 본다
+    @MockitoBean
+    private EmailVerificationService emailVerificationService;
+
     @Value("${jwt.secret}")
     private String accessSecret;
 
@@ -70,7 +76,7 @@ class AuthIntegrationTest {
     void signUpReturnsAccessTokenAndRefreshCookie() throws Exception {
         mockMvc.perform(post("/api/v1/auth/signup")
                         .contentType("application/json")
-                        .content("{\"email\":\"user@example.com\",\"password\":\"password123\",\"name\":\"테스터\",\"phoneNumber\":\"010-1234-5678\",\"defaultShippingAddress\":\"서울시 강남구 테헤란로 1\",\"birthDate\":\"1995-01-20\",\"gender\":\"MALE\"}"))
+                        .content("{\"email\":\"user@example.com\",\"password\":\"password123\",\"name\":\"테스터\",\"phoneNumber\":\"010-1234-5678\",\"defaultShippingAddress\":\"서울시 강남구 테헤란로 1\",\"birthDate\":\"1995-01-20\",\"gender\":\"MALE\",\"emailVerificationToken\":\"verified-token\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(header().string("Set-Cookie", containsString("refreshToken=")));

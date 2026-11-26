@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import shop.daejung.daejungdistbackend.modules.auth.dto.ConfirmEmailVerificationRequest;
+import shop.daejung.daejungdistbackend.modules.auth.dto.EmailVerificationTokenResponse;
 import shop.daejung.daejungdistbackend.modules.auth.dto.SendEmailVerificationRequest;
 import shop.daejung.daejungdistbackend.modules.auth.service.EmailVerificationService;
 
@@ -20,5 +22,11 @@ public class EmailVerificationController {
     public ResponseEntity<Void> sendCode(@RequestBody @Valid SendEmailVerificationRequest request) {
         emailVerificationService.sendCode(request.email());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<EmailVerificationTokenResponse> confirm(@RequestBody @Valid ConfirmEmailVerificationRequest request) {
+        String token = emailVerificationService.confirm(request.email(), request.code());
+        return ResponseEntity.ok(new EmailVerificationTokenResponse(token));
     }
 }

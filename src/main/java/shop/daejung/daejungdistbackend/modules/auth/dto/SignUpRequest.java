@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import shop.daejung.daejungdistbackend.global.util.EmailNormalizer;
 import shop.daejung.daejungdistbackend.modules.user.domain.Gender;
 
 import java.time.LocalDate;
@@ -34,6 +35,12 @@ public record SignUpRequest(
         LocalDate birthDate,
 
         @NotNull(message = "성별은 필수입니다.")
-        Gender gender
+        Gender gender,
+
+        @NotBlank(message = "이메일 인증이 필요합니다.")
+        String emailVerificationToken
 ) {
+    public SignUpRequest {
+        email = EmailNormalizer.normalize(email);
+    }
 }

@@ -26,6 +26,7 @@ public class AuthService {
     private final RefreshTokenStore refreshTokenStore;
     private final PasswordEncoder passwordEncoder;
     private final SupportService supportService;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public User signUp(SignUpRequest request) {
@@ -33,6 +34,8 @@ public class AuthService {
         if (userService.existsByEmail(request.email())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 가입된 이메일입니다.");
         }
+        // 이메일 인증을 마친 주소인지 확인
+        emailVerificationService.consumeVerifiedEmail(request.emailVerificationToken(), request.email());
         // 유저 생성
         return userService.createUser(request);
     }

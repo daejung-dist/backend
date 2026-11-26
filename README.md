@@ -52,6 +52,10 @@ MYSQL_ROOT_PASSWORD=change_me
 MYSQL_DATABASE=daejung_dist
 MYSQL_USER=app_user
 MYSQL_PASSWORD=change_me
+
+# 회원가입 인증 메일 발송용 Gmail 계정과 앱 비밀번호(16자리, 공백 없이)
+MAIL_USERNAME=change_me@gmail.com
+MAIL_PASSWORD=change_me
 ```
 
 ### 2. 실행

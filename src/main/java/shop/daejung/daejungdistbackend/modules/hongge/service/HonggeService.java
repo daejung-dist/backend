@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import shop.daejung.daejungdistbackend.modules.hongge.domain.Hongge;
+import shop.daejung.daejungdistbackend.modules.hongge.dto.HonggeResponse;
 import shop.daejung.daejungdistbackend.modules.hongge.repository.HonggeRepository;
 
 import java.util.List;
@@ -16,12 +16,19 @@ import java.util.List;
 public class HonggeService {
     private final HonggeRepository honggeRepository;
 
-    public Hongge getHongge(Long id) {
+    public HonggeResponse getHongge(Long id) {
         return honggeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hongge not found"));
+                .map(HonggeResponse::from)
+                .orElseThrow(this::notFound);
     }
 
-    public List<Hongge> getHongges() {
-        return honggeRepository.findAllByOrderByIdAsc();
+    public List<HonggeResponse> getHongges() {
+        return honggeRepository.findAllByOrderByIdAsc().stream()
+                .map(HonggeResponse::from)
+                .toList();
+    }
+
+    private ResponseStatusException notFound() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다.");
     }
 }
